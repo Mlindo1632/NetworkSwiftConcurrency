@@ -12,14 +12,29 @@ struct ContentView: View {
     @StateObject var viewModel = CoinsViewModel()
     
     var body: some View {
-        VStack {
-            if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
-            } else {
-                Text("\(viewModel.coin): \(viewModel.price)")
+            List {
+                ForEach(viewModel.coins) { coin in
+                HStack(spacing: 12) {
+                    Text("\(coin.marketCapRank)")
+                        .foregroundColor(.gray)
+                    
+                    Image(systemName: "heart.fill")
+                    
+                    VStack (alignment: .leading, spacing: 4) {
+                        Text(coin.name).bold()
+                            .fontWeight(.semibold)
+                        
+                        Text(coin.symbol.uppercased())
+                    }
+                }
+                .font(.footnote)
             }
         }
-        .padding()
+            .overlay {
+                if let error = viewModel.errorMessage {
+                    Text(error)
+                }
+            }
     }
 }
 

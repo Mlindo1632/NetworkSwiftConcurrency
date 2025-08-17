@@ -8,6 +8,74 @@
 import Foundation
 
 class CoinDataService {
+    
+    func fetchCoinsWithResult(completion: @escaping(Result<[CoinModel], CoinAPIError>) -> Void) {
+        let urlString = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=zar&order=market_cap_desc&per_page=3&page=1&sparkline=false&price_change_percentage=24h&locale=en"
+        guard let url = URL(string: urlString) else { return }
+        
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            
+            if let error = error {
+                completion(.failure(.unknownError(error: error)))
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                completion(.failure(.requestDailed(description: "Request failed")))
+                return
+            }
+            
+            guard httpResponse.statusCode == 200 else {
+                completion(.failure(.invalidStatusCode(statusCode: httpResponse.statusCode)))
+                return
+            }
+            
+            guard let data = data else {
+                completion(.failure(.invalidData))
+                return
+            }
+            do {
+                 let coins = try JSONDecoder().decode([CoinModel].self, from: data)
+                completion(.success(coins))
+            } catch {
+                print("DEBUG: Failed to decode with \(error)") // print privately so we only know, user will be confused
+                completion(.failure(.jsonParsingFailure))
+            }
+            guard let coins = try? JSONDecoder().decode([CoinModel].self, from: data) else {
+                print("DEBUG: Failed to decode CoinsModel")
+                return
+            }
+            
+            completion(.success(coins))
+            print("DEBUG: Coins decoded \(coins)")
+        }
+        .resume()
+    }
+    
+    func fetchCoins(completion: @escaping([CoinModel]?, Error?) -> Void) {
+        let urlString = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=zar&order=market_cap_desc&per_page=3&page=1&sparkline=false&price_change_percentage=24h&locale=en"
+        guard let url = URL(string: urlString) else { return }
+        
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            
+            if let error = error {
+                completion(nil, error)
+                return
+            }
+            
+            guard let data = data else { return }
+            
+            guard let coins = try? JSONDecoder().decode([CoinModel].self, from: data) else {
+                print("DEBUG: Failed to decode CoinsModel")
+                return
+            }
+            
+            completion(coins, nil)
+            print("DEBUG: Coins decoded \(coins)")
+        }
+        .resume()
+    }
+    
     func fetchPrice(coin: String, currency: String, completion: @escaping(Double) -> Void)  {
         print("\(Thread.current)")
         let urlString = "https://api.coingecko.com/api/v3/simple/price?ids=\(coin)&vs_currencies=\(currency)"
@@ -42,7 +110,6 @@ class CoinDataService {
             
             print("DEBUG: Price in service \(price)")
             completion(price)
-            
         }.resume()
     }
 }
