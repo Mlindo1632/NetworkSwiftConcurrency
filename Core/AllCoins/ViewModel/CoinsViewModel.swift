@@ -17,21 +17,18 @@ class CoinsViewModel: ObservableObject {
      private let service = CoinDataService()
     
     init() {
-        //fetchPrice(coin: "bitcoin", currency: "zar")
-        fetchCoins()
+        Task { try await fetchCryptoCoins() }
     }
     
+    func fetchCryptoCoins() async throws {
+        let fetchedCoins = try await service.fetchCryptoCoins()
+        await MainActor.run {
+            self.coins = fetchedCoins
+        }
+    }
+
+    
     func fetchCoins() {
-//        service.fetchCoins { coins, error in
-//            DispatchQueue.main.async {
-//                if let error = error {
-//                    self.errorMessage = error.localizedDescription
-//                    return
-//                }
-//                self.coins = coins ?? []
-//            }
-//        }
-        
         service.fetchCoinsWithResult {[weak self] result in
             DispatchQueue.main.async {
                 switch result {

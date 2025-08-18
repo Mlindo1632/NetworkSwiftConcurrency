@@ -8,7 +8,25 @@
 import Foundation
 
 class CoinDataService {
+    let urlString = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=zar&order=market_cap_desc&per_page=28&page=1&sparkline=false&price_change_percentage=24h&locale=en"
     
+    func fetchCryptoCoins() async throws -> [CoinModel] {
+        guard let url = URL(string: urlString) else { return [] }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let coins = try JSONDecoder().decode([CoinModel].self, from: data)
+            return coins
+           
+        } catch {
+            print("DEBUG: Error: \(error.localizedDescription)")
+            return []
+        }
+    }
+}
+
+// MARK: - Completion Handlers
+
+extension CoinDataService {
     func fetchCoinsWithResult(completion: @escaping(Result<[CoinModel], CoinAPIError>) -> Void) {
         let urlString = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=zar&order=market_cap_desc&per_page=3&page=1&sparkline=false&price_change_percentage=24h&locale=en"
         guard let url = URL(string: urlString) else { return }
