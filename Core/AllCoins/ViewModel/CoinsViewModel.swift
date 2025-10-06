@@ -9,35 +9,42 @@
 
 import Foundation
 
+@MainActor
 class CoinsViewModel: ObservableObject {
     
-    @Published var coins = [CoinModel]()
     @Published var errorMessage: String?
+    @Published var loadingState: ContentLoadingState<[CoinModel]> = .loading
     
-     private let service = CoinDataService()
+    private let service: CoinDataServiceProtocol
     
-    init() {
-        Task { try await fetchCryptoCoins() }
+    init(service: CoinDataServiceProtocol = CoinDataService(networkManager: NetworkManager.shared)) {
+        self.service = service
+        Task { await loadCoins() }
     }
     
-    func fetchCryptoCoins() async throws {
-        let fetchedCoins = try await service.fetchCryptoCoins()
-        await MainActor.run {
-            self.coins = fetchedCoins
-        }
-    }
-
-    
-    func fetchCoins() {
-        service.fetchCoinsWithResult {[weak self] result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let coins):
-                    self?.coins = coins
-                case .failure(let error):
-                    self?.errorMessage = error.localizedDescription
-                }
-            }
+    func loadCoins() async {
+        do {
+            try await Task.sleep(nanoseconds: 6_000_000_000)
+            
+            let fetchedCoins = try await service.fetchCoins()
+            self.loadingState = fetchedCoins.isEmpty ? .empty : .complete(data: fetchedCoins)
+        } catch {
+            self.loadingState = .error(error)
         }
     }
 }
+
+    
+//    func fetchCoins() {
+//        service.fetchCoinsWithResult {[weak self] result in
+//            DispatchQueue.main.async {
+//                switch result {
+//                case .success(let coins):
+//                    self?.coins = coins
+//                case .failure(let error):
+//                    self?.errorMessage = error.localizedDescription
+//                }
+//            }
+//        }
+//    }
+//}

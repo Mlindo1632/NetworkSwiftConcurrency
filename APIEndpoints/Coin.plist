@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+   PropertyList.plist
+   NetworkSwiftConcurrency
+
+   Created by Lindokuhle Khumalo on 2025/10/05.
+   Copyright (c) 2025 ___ORGANIZATIONNAME___. All rights reserved.
+-->
+<plist version="1.0">
+<dict>
+<key>CoinGeckoEndpoint</key>
+    <string>https://api.coingecko.com/api/v3/coins/markets?vs_currency=zar&amp;order=market_cap_desc&amp;per_page=28&amp;page=1&amp;sparkline=false&amp;price_change_percentage=24h&amp;locale=en</string>
+</dict>
+</plist>

@@ -7,20 +7,25 @@
 
 import Foundation
 
-class CoinDataService {
-    let urlString = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=zar&order=market_cap_desc&per_page=28&page=1&sparkline=false&price_change_percentage=24h&locale=en"
+protocol CoinDataServiceProtocol {
+    func fetchCoins() async throws -> [CoinModel]
+}
+
+struct CoinDataService: CoinDataServiceProtocol {
     
-    func fetchCryptoCoins() async throws -> [CoinModel] {
-        guard let url = URL(string: urlString) else { return [] }
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let coins = try JSONDecoder().decode([CoinModel].self, from: data)
-            return coins
-           
-        } catch {
-            print("DEBUG: Error: \(error.localizedDescription)")
-            return []
-        }
+    private let networkManager: NetworkManagerProtocol
+    
+    init(networkManager: NetworkManagerProtocol) {
+        self.networkManager = networkManager
+    }
+    
+    func fetchCoins() async throws -> [CoinModel] {
+        let endpoint = SecurePlistReader.readValue(key: "CoinGeckoEndpoint")!
+        let response: [CoinModel] = try await networkManager.request(endpoint: endpoint,
+                                                                   method: HTTPMethod.get,
+                                                                   parameters: nil,
+                                                                   headers: nil)
+        return response
     }
 }
 
@@ -39,7 +44,7 @@ extension CoinDataService {
             }
             
             guard let httpResponse = response as? HTTPURLResponse else {
-                completion(.failure(.requestDailed(description: "Request failed")))
+                completion(.failure(.requestFailed(description: "Request failed")))
                 return
             }
             
