@@ -12,34 +12,36 @@ struct ContentView: View {
     @StateObject var viewModel = CoinsViewModel()
     
     var body: some View {
-        NavigationStack {
-            List {
-                ForEach(viewModel.coins) { coin in
-                    HStack(spacing: 12) {
-                        Text("\(coin.marketCapRank)")
-                            .foregroundColor(.gray)
-                        
-                        Image(systemName: "heart.fill")
-                        
-                        VStack (alignment: .leading, spacing: 4) {
-                            Text(coin.name).bold()
-                                .fontWeight(.semibold)
+        VStack {
+            switch viewModel.loadingState {
+            case .loading:
+                ProgressView()
+            case .empty:
+                Text("No data")
+            case .error(let error):
+                Text(error.localizedDescription)
+            case .complete(let data):
+                List {
+                    ForEach(data) { coin in
+                        HStack(spacing: 12) {
+                            Text("\(coin.marketCapRank)")
+                                .foregroundColor(.gray)
                             
-                            Text(coin.symbol.uppercased())
+                            Image(systemName: "heart.fill")
+                            
+                            VStack (alignment: .leading, spacing: 4) {
+                                Text(coin.name).bold()
+                                    .fontWeight(.semibold)
+                                
+                                Text(coin.symbol.uppercased())
+                            }
                         }
                     }
-                    .font(.footnote)
                 }
             }
-            .overlay {
-                if let error = viewModel.errorMessage {
-                    Text(error)
-                }
-            }
-            .navigationTitle("Coins")
-            .navigationBarTitleDisplayMode(.automatic)
         }
-        
+        .navigationTitle("Coins")
+        .navigationBarTitleDisplayMode(.automatic)
     }
 }
 

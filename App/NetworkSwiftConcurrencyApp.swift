@@ -11,7 +11,9 @@ import SwiftUI
 struct NetworkSwiftConcurrencyApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            NavigationStack {
+                ContentView()
+            }
         }
     }
 }
